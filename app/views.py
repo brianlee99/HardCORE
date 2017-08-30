@@ -2332,12 +2332,15 @@ def tree_builder(folder_name=None):
                         flash(str(e))
                         return redirect(url_for('tree_builder', folder_name=folder_name))
 
-                # start building the tree
-                build_tree(algorithm, N, builder, multithread, merge, folder_name, datatype)
+                try:
+                    # start building the tree
+                    build_tree(algorithm, N, builder, multithread, merge, folder_name, datatype)
 
-                # generate a dictionary of tree-related properties
-                generate_tree_props(N, datatype, gene_list, builder, merge, algorithm, folder_name)
-                flash("Tree construction complete!")
+                    # generate a dictionary of tree-related properties
+                    generate_tree_props(N, datatype, gene_list, builder, merge, algorithm, folder_name)
+                    flash("Tree construction complete!")
+                except OSError:
+                    flash("ERROR: Two or fewer species (possibly as a result of collapsing)")
                 return redirect(url_for('tree_builder', folder_name=folder_name))
 
             else:
