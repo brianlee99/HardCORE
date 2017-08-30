@@ -1389,6 +1389,8 @@ def snp_mutations(folder_name, gene_name):
     ref_genome = all_refs[folder_name]
 
     # make folders for run date & ref genome
+    if not os.path.isdir(GRAPHS_FOLDER):
+        os.mkdir(GRAPHS_FOLDER)
     os.chdir(GRAPHS_FOLDER)
     if folder_name not in os.listdir('.'):
         os.mkdir(folder_name)
