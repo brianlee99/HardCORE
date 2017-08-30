@@ -3308,6 +3308,9 @@ def network(folder_name=None):
 
     select_list = get_select_list()
 
+    if not os.path.isdir(VISUALS_FOLDER):
+        os.mkdir(VISUALS_FOLDER)
+
     if folder_name:
         form = NetworkForm()
         # check for a post request
@@ -3384,6 +3387,9 @@ def sunburst(folder_name=None):
             validate_folder_name(folder_name)
         except ValueError:
             abort(404)
+    
+    if not os.path.isdir(VISUALS_FOLDER):
+        os.mkdir(VISUALS_FOLDER)
 
     select_list = get_select_list()
     if folder_name:
