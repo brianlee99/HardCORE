@@ -1,0 +1,44 @@
+{
+    "20170830_114121": {
+        "genes_per_genome": 4605.1, 
+        "ident": 90.0, 
+        "run_name": "twenty", 
+        "snp_count": 367126, 
+        "time_elapsed": 106.38, 
+        "mutation_count": 39596, 
+        "singleton_count": 11124, 
+        "plen": 90.0, 
+        "date": "Aug 30 2017, 11:41:21", 
+        "pan_count": 19791, 
+        "core_count": 1302, 
+        "genome_count": 20
+    }, 
+    "20170830_095946": {
+        "genes_per_genome": 249.0, 
+        "ident": 80.0, 
+        "plen": 80.0, 
+        "snp_count": 4626, 
+        "time_elapsed": 2.37, 
+        "mutation_count": 636, 
+        "pan_count": 249, 
+        "run_name": "20170830_095946", 
+        "date": "Aug 30 2017, 09:59:46", 
+        "singleton_count": 0, 
+        "core_count": 249, 
+        "genome_count": 5
+    }, 
+    "20170830_100605": {
+        "pan_count": 5625, 
+        "genes_per_genome": 4313.2, 
+        "ident": 90.0, 
+        "snp_count": 64719, 
+        "time_elapsed": 47.65, 
+        "mutation_count": 9700, 
+        "singleton_count": 1297, 
+        "run_name": "Five", 
+        "date": "Aug 30 2017, 10:06:05", 
+        "plen": 90.0, 
+        "genome_count": 5, 
+        "core_count": 3556
+    }
+}
