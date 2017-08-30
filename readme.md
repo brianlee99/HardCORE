@@ -26,6 +26,7 @@ If you are planning on deployment onto the server, however, there are a number o
    * Note: Please install ETE3 using the "Native" installation method
 * [RAxML](https://github.com/stamatak/standard-RAxML)
 * snp-sites (`$ sudo apt-get install snp-sites`)
+* A handful of perl libraries (see below)
 
 ### Special notes on installation
 
@@ -52,6 +53,17 @@ A multithreaded version can also be compiled, which is ~40% faster. To install t
 
 **Important**: make sure the standard-RAxML folder is in your PATH. To do so, append the following to the bottom of your .bashrc or .zshrc (depending on what shell you are using):
 export PATH=/PATH/TO/standard-RAxML:$PATH
+
+#### Perl libraries
+Go into your terminal and type the following, one line at a time:
+```
+> sudo cpan
+> install Algorithm::Combinatorics
+> install Parallel::ForkManager
+> install Sys::Info
+> install MCE::Shared
+> exit
+```
 
 #### HardCORE Suite
 The HardCORE Suite (credits to Nick, see below) is included in the application container. It can function on its own, however, as long as you run the HardCORE_usearch.pl script. Please refer to the source code in views.py for an example call using the perl script.
@@ -95,6 +107,14 @@ or
 ```
 http://localhost:5000/
 ```
+
+**Note**: In run.py you will notice the two lines in particular:
+```python
+app.run(host='0.0.0.0')
+#app.run(host='127.0.0.1')
+```
+
+Keep one of the lines commented, and the other one uncommented. 127.0.0.1 is the default address used for serving Flask applications (using Apache2), but 0.0.0.0 will allow you to use the server with other computers in your local network (as mentioned earlier).
 
 ## Usage
 
