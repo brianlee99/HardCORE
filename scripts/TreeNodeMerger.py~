@@ -1,0 +1,162 @@
+#!/usr/bin/python
+import argparse
+import itertools
+import subprocess
+import os, sys
+
+# TreeNodeMerger.py
+
+# Passing in a phylip  file will go through each sequence and see if they are identical.
+# If so, they will be put into a single branch to be rendered
+# In addition, there will be additional information outputted, which describes which leaves have been merged.
+
+# Example call:
+# TreeNodeMerger.py Amager.1684.BMH_00058.fasta -p
+
+def find_indexes(combined_seqs, first, second):
+    index_1 = -1
+    index_2 = -1
+    for index in combined_seqs.keys():
+        if first in combined_seqs[index]['genomes']:
+            index_1 = index
+        if second in combined_seqs[index]['genomes']:
+            index_2 = index
+    return (index_1, index_2)
+
+def merge_entries(combined_seqs, index_1, index_2, num_groups):
+    # put the array at index_2 into the array at index_1
+    combined_seqs[index_1]['genomes'].extend(combined_seqs[index_2]['genomes'])
+    combined_seqs[index_1]['genomes'].sort()
+    combined_seqs[index_1]['name'] = "Group{}".format(num_groups)
+
+    # for all arrays that are higher than index_2, decrease by 1
+    for j in range(index_2+1, len(combined_seqs)+1):
+        combined_seqs[j-1] = combined_seqs[j]
+
+    # pop the very last one
+    combined_seqs.pop(len(combined_seqs))
+
+def get_num_groups(combined_seqs, index_1, index_2, num_groups):
+    if len(combined_seqs[index_1]['genomes']) == 1 and \
+        len(combined_seqs[index_2]['genomes']) == 1:  # new group
+        return num_groups + 1
+    elif len(combined_seqs[index_1]['genomes']) > 1 and \
+        len(combined_seqs[index_2]['genomes']) > 1:  # loss of a group
+        return num_groups - 1
+    else:
+        return num_groups
+
+def rename_all_groups(combined_seqs):
+    num = 1
+    for v in combined_seqs.values():
+        if len(v['genomes']) > 1:
+            v['name'] = "Group{}".format(num)
+            num += 1
+
+# Main routine
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Creates a filtered phylip tree, which merges identical leaves')
+    parser.add_argument('filename')
+    parser.add_argument('-p', action='store_const', const=True)  # this is for outputting a phylip file
+    args = parser.parse_args()
+
+    filename = args.filename
+    phylip = args.p
+
+    seq = ''
+    genome = ''
+    seqs = {}
+
+    print "Starting TreeNodeMerger on {}".format(filename)
+
+    # Check if file already exists
+    if "{}.trimmed.fasta".format(filename) in os.listdir('.'):
+        print "{}.trimmed.fasta already exists; overwriting".format(filename)
+
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith('>'):
+                if seq:
+                    seqs[genome] = seq
+                    seq = ''
+                genome = line
+            else:
+                seq += line
+    seqs[genome] = seq
+
+    genomes = sorted(seqs.keys())
+    first = genomes[0]
+
+    # a generator that produces all possible pairs between genomes
+    pairs = itertools.combinations(genomes, 2)
+    combined_seqs = {}
+    i = 1  # index
+    num_groups = 0  # designating groups as Group 1, Group 2, etc.
+
+    # need to populate combined_seqs with the very first entry
+    combined_seqs[1] = {'genomes': [first], 'seq': seqs[first], 'name': first}
+
+
+    for pair in pairs:
+        first = pair[0]
+        second = pair[1]
+        if seqs[first] == seqs[second]:
+            index_1, index_2 = find_indexes(combined_seqs, first, second)
+            
+            # if index_2 is not even there
+            if index_2 == -1:
+                if len(combined_seqs[index_1]['genomes']) == 1:
+                    num_groups += 1
+                    combined_seqs[index_1]['name'] = "Group{}".format(num_groups)
+                combined_seqs[index_1]['genomes'].append(second)
+            
+            # if index_1 and index_2 are different, but both are found
+            elif index_1 != index_2:
+                # num groups might change depending on how they are assimilated
+                num_groups = get_num_groups(combined_seqs, index_1, index_2, num_groups)
+
+                merge_entries(combined_seqs, index_1, index_2, num_groups)
+                rename_all_groups(combined_seqs)
+                i -= 1
+        else:
+            exists = False
+            # create new entry, but only if pair[1] doesn't already have an entry
+            for k in combined_seqs.keys():
+                if second in combined_seqs[k]['genomes']:
+                    exists = True
+            if not exists:
+                i += 1 
+                combined_seqs[i] = {'genomes': [second], 'seq': seqs[second], 'name': second}
+
+
+    # output new trimmed fasta, as well as a legend explaining which group contains which genomes
+    with open('{}.trimmed.fasta'.format(filename), 'w') as out:
+        with open('{}.legend.txt'.format(filename), 'w') as out2:
+            for k in sorted(combined_seqs.keys()):
+
+                name = combined_seqs[k]['name']
+                if name.startswith("Group"):
+                    name_fasta = ">" + name
+                else:
+                    name_fasta = name
+                
+                out.write("{}\n".format(name_fasta))
+                out.write(combined_seqs[k]['seq'])
+                out.write("\n")
+
+                if name.startswith("Group"):
+                    out2.write(name)
+                    out2.write("\t")
+                    for g in combined_seqs[k]['genomes']:
+                        out2.write(g + "\t")
+                    out2.write("\n")
+
+    # if the -p parameter was specified, create a corresponding phy file from the trimmed fasta
+    if phylip:
+        # Assumes Fasta2Phylip is in the same directory
+        base_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        f2p_dir = os.path.join(base_dir, "Fasta2Phylip.pl")
+        if "Fasta2Phylip.pl" in os.listdir(base_dir):
+            process = subprocess.Popen("{0} {1}.trimmed.fasta {1}.trimmed.phy".format(f2p_dir, filename), shell=True)
+            process.wait()

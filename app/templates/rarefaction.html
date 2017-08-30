@@ -1,0 +1,68 @@
+<!-- Import statements -->
+{% extends "base.html" %}
+{% from "macros.html" import select_run %}
+
+{% block title %}Rarefaction{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static',filename='rarefaction.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h1>HardCORE - Rarefaction</h1>
+{% if run_name %}
+	<h3>Run selected: {{ run_name }}</h3>
+{% endif %}
+
+<!-- Selecting a run -->
+{{ select_run(select_list) }}
+
+<!-- warning -->
+{% if folder_name %}
+	<h4 class="warning">Note that this analysis will take considerably more time
+		than the initial HardCORE analysis. </h4>
+	<p class="warning">(We're talking about days/possibly weeks!)</p>
+{% endif %}
+
+
+<!-- Performing the rarefaction analysis -->
+{% if rf_form %}
+	<div class="form">
+		<form action="" method="post" enctype="multipart/form-data">
+			{{ rf_form.hidden_tag() }}
+      <p>
+	      <b>Optional:</b> Download the strains file here (text file of all genomes).
+	    </p>
+			
+			{{ rf_form.download_strains(class_="btn btn-default" )}}
+			
+	    <p>
+	      Open the strains file, assign a category inside brackets next to each genome, and save.
+	      Then, upload the labelled strains file.<br>
+	      For example:
+      </p>
+      <pre class="code">Amager.1684.BMH   [Salm]<br>Anatum.1993.BMH   [Salm]<br>Citrobacter.braakii    [Citro]<br>...</pre>
+      
+			{{ rf_form.strains }}
+
+			<div class="rf_form">
+				<div class="fields">
+					<div class="form-element">
+						<p class="header">Step size (k)</p>
+						<span class="field">{{ rf_form.step }}</span>
+					</div>
+					<div class="form-element">
+						<p class="header">Replicates per step</p>
+						<span class="field">{{ rf_form.reps }}</span>
+					</div>
+				</div>
+
+				<p class="warning">Please do not close this page while the analysis is running!</p>
+				{{ rf_form.start_run(class_="btn btn-success")}}
+			</div>
+		</form>
+	</div>
+{% endif %}
+
+{% endblock %}

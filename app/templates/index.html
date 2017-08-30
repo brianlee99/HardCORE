@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Index{% endblock %}
+
+{# {% block head %}
+  <link rel="stylesheet" href="{{ url_for('static',filename='index.css') }}">
+{% endblock %} #}
+
+{% block content %}
+
+<h1>HardCORE - Index</h1>
+
+<form action="" method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+
+  <div class="section">
+    <p>Upload your faa and ffn files in an archive format (such as .zip or .tar):</p>
+    <div class="fields">
+      <div class="field-element">
+        <p class="field-description">FAA Archive</p>
+        {{ form.faa }}
+      </div>
+      <div class="field-element">
+        <p class="field-description">FFN Archive</p>
+        {{ form.ffn }}
+      </div>
+    </div>
+  </div>
+  
+  <div class="section"> 
+    <h4>Additional parameters</h4>
+    <p>
+      <b>Percent identity:</b> How similar should two genes be (when comparing the aa sequences) to be considered part of the same gene family?<br>
+      <b>Percent length:</b> Over what percent of the length (of the longer sequence) should two genes express similarity?<br>
+      <b>Note: Both values are decimals, and should be between 0.5 and 1</b><br>
+    </p>
+    <div class="fields">
+      <div class="field-element">
+        <p class="field-description">Percent Identity</p>
+        {{ form.ident }} 
+      </div>
+      <div class="field-element">
+        <p class="field-description">Percent Length</p>
+        {{ form.plen }}
+      </div>
+      <div class="field-element">
+        <p class="field-description"># of threads (default: # of cores on system)</p>
+        {{ form.threads }}
+      </div>
+      <div class="field-element">
+        <p class="field-description">Run name (optional)</p>
+        {{ form.run_name }}
+      </div>
+    </div>
+    <p class="warning">Please do not close this page while the analysis is running!</p>
+    <input type="submit" value="Run HardCORE" class="btn btn-primary">
+  </div>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- CSS -->
+<style>
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  position: relative;
+  width: 960px;
+}
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+/* Bar colors */
+.bar1 {
+  fill: steelblue;
+  fill-opacity: .9;
+}
+
+.bar2 {
+  fill: red;
+  fill-opacity: .9;
+}
+
+.bar3 {
+  fill: green;
+  fill-opacity: .9;
+}
+
+.bar4 {
+  fill: pink;
+  fill-opacity: .9;
+}
+
+.x.axis path {
+  display: none;
+}
+
+label {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.d3-tip {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+</style>
+
+<script src="{{ url_for('static', filename='d3.min.js') }}"></script>
+<!-- Thanks to Justin Palmer for developing the d3-tip add-on for d3.
+GitHub repo: https://github.com/Caged/d3-tip -->
+<script src="{{ url_for('static', filename='d3.tip.v0.6.3.js') }}"></script>
+
+{% if datatype == 'nucleotide' %}
+  {% set title = "Nucleotide" %}
+{% elif datatype == 'amino_acid' %}
+  {% set title = "Amino Acid" %}
+{% else %}
+  {% set title = "ERROR" %}
+{% endif %}
+
+<!-- Main HTML content -->
+<header>
+  <h1>{{ title }} Bar Charts for: {{ gene_name }}</h2>
+  <h4>Using reference: {{ ref_genome }}</h5>
+</header>
+
+</div>
+{% if datatype == 'nucleotide' %}
+  <div class="one">
+    <h4>Transitions</h4>
+    <input type="checkbox" id="sort1"> Sort values
+  </div>
+  <div class="two">
+    <h4>Transversions</h4>
+    <input type="checkbox" id="sort2"> Sort values
+  </div>
+{% elif datatype == 'amino_acid' %}
+  <div class="three">
+    <h4>Conservative</h4>
+    <input type="checkbox" id="sort3"> Sort values
+  </div>
+  <div class="four">
+    <h4>Non-conservative</h4>
+    <input type="checkbox" id="sort4"> Sort values
+  </div>
+{% endif %}
+
+
+<!-- Main script; combined with Mike Bostock's applet on
+sortable bar charts, found here:
+https://bl.ocks.org/mbostock/3885705
+-->
+<script>
+var file1 = "{{ url_for('static', filename=filenames[0]) }}";
+var file2 = "{{ url_for('static', filename=filenames[1]) }}";
+var file3 = "{{ url_for('static', filename=filenames[2]) }}";
+var file4 = "{{ url_for('static', filename=filenames[3]) }}";
+
+// d3-related definitions
+var count = '{{ count }}';
+count = +count; // convert to a number
+
+var margin = {top: 20, right: 45, bottom: 30, left: 60},
+    // based on the fact that we want the in-between
+    // margins to be 0.3 * width, and we have n bars and n-1 margins.
+    // we also want the width of each bar to be around 40.
+
+    // so we have 0.3 = x/(x+40) => where x is the size of the margin
+    // and x+40 is the size of the entire step
+    // basically x works out to 17
+    // width = count*40 + 17*(count - 1),
+    width = count*57 - 17
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], 0.3, 0); // interval, padding, outer padding
+var y = d3.scale.linear()
+    .range([height, 0]);
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+var yAxis2 = d3.svg.axis()
+    .scale(y)
+    .orient("right");
+
+// classes is passed in from Python
+var classes = {{ classes|tojson }};
+var bars = (classes[0] === ".one")
+  ? ["bar1", "bar2"]
+  : ["bar3", "bar4"];
+var tsvs = (classes[0] === ".one")
+  ? [file1, file2]
+  : [file3, file4];
+var svgs = [];  // will contain svg-related objects
+
+classes.forEach(function(cls, i) {
+  let svgObj = {};
+
+  var svg = d3.select(cls)
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  svgObj.svg = svg;
+  svgObj.bar = bars[i];
+  svgObj.tsv = tsvs[i];
+
+  svgs.push(svgObj);
+});
+
+var genomes = {{ alts|tojson }};
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    let index = parseInt(d.Genome) - 1;
+    let genomeName = genomes[index];
+    let content = "<strong>Genome:</strong> <span style='color:red'>" + genomeName
+    + "</span><br/>" + "<strong>Frequency:</strong> <span style='color:red'>" +
+    d.Mutations + "</span>";
+    return content;
+  })
+
+// just pass any svg object into the 'tip' function
+// do not need to pass both
+svgs[0].svg.call(tip);
+
+// --------------------------------------------------------------------
+svgs.forEach(function(svgObj, i) {
+  // Open the tsv file used for rendering the svg
+  d3.tsv(svgObj.tsv, function(error, data) {
+
+    x.domain(data.map(function(d) {
+      return d.Genome;
+    }));
+
+    // set the y-domain (which varies based on the largest value)
+    let yDomain = [0, d3.max(data, function(d) {
+      var intD = parseInt(d.Mutations);
+      return intD;
+    })];
+    y.domain(yDomain);
+
+    svgObj.svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+    svgObj.svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Frequency");
+    svgObj.svg.append("g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(" + width + " ,0)") 
+        .call(yAxis2)
+      .append("text")
+        .attr("transform", "rotate(90)")
+        .attr("y", 12)
+        .attr("x", 48)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Frequency");
+    svgObj.svg.selectAll(svgObj.bar)
+        .data(data)
+      .enter().append("rect")
+        .attr("class", svgObj.bar)
+        .attr("x", function(d) { return x(d.Genome); })
+        .attr("width", x.rangeBand())
+        .attr("y", function(d) { return y(d.Mutations); })
+        .attr("height", function(d) { return height - y(d.Mutations);  })
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide);
+    // --------------------------------------------------------------------------
+    var pos = svgObj.bar[svgObj.bar.length - 1];
+    d3.select("#sort"+pos).on("change", change);
+
+    // The change() listener function
+    function change() {
+      // Copy-on-write since tweens are evaluated after a delay.
+      var x0 = x.domain(data.sort(this.checked
+          ? function(a, b) { return b.Mutations - a.Mutations; }
+          : function(a, b) { 
+            var genomeA = parseInt(a.Genome);
+            var genomeB = parseInt(b.Genome);
+            return d3.ascending(genomeA, genomeB); 
+          })
+          .map(function(d) { return d.Genome; }))
+          .copy();
+      
+      let svg = svgObj.svg;
+      svg.selectAll("." + svgObj.bar)
+          .sort(function(a, b) { return x0(a.Genome) - x0(b.Genome); });
+
+      var transition = svg.transition().duration(750),
+          delay = function(d, i) { return i * 50; };
+      transition.selectAll("." + svgObj.bar)
+          .delay(delay)
+          .attr("x", function(d) { return x0(d.Genome); });
+      transition.select(".x.axis")
+          .call(xAxis)
+        .selectAll("g")
+          .delay(delay);
+    }
+  });
+});  
+
+</script>
+
+<!-- 
+NOTE:
+Listener is the same for both sort3 and sort4.
+Basically:
+if i = 0, then we are attaching the 'change' listener onto sort3.
+if i = 1 we are attaching 'change' onto sort4.
+because of the way the loop is working, hopefully there are two different "changes", each
+associated with conservative values / non-conservative values.
+-->

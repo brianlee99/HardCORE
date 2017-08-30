@@ -1,0 +1,74 @@
+#tree_table,
+#tree_table td,
+#tree_table th{
+	border: 1px solid black;
+	text-align: center;
+}
+
+.form-element {
+	margin-bottom: 12px;
+}
+
+#search {
+	margin-right: 0;
+	margin-bottom: 8px;
+}
+
+.form-section {
+	border: 1px solid black;
+	padding: 8px;
+	margin-top: 16px;
+	margin-bottom: 16px;
+    background-color: #caeef9;
+}
+
+/* readjust padding for the radio buttons */
+#datatype {
+	padding-left: 6px;
+}
+#datatype li {
+	list-style: none;
+}
+
+.center {
+	text-align: center;
+}
+
+.form {
+	width: 40%;
+	margin-right: 5%;
+	float: left;
+}
+
+.inner {
+	border: 1px solid black;
+	background-color: white;
+	padding: 8px;
+	display: inline-block;
+	margin: 12px 0px 0px 0px;
+	margin-left: 30%; 
+	width: 40%;
+}
+
+/* left and right */
+.left, .right {
+	float: left;
+	width: 40%;
+}
+
+/* Give the right container some space to the left */
+.right {
+	margin-left: 16px;
+}
+
+.buttons {
+	margin-bottom: 12px;
+}
+
+button, input[type=submit] {
+	margin-right: 8px;
+}
+
+.divider {
+	border-top: 1px solid black;
+}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% from "macros.html" import select_run %}
+
+{% block title %}Gene Lookup{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static',filename='gene_lookup.css') }}">
+<script type=text/javascript src="{{  url_for('static', filename='sorttable.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<h1>HardCORE - Gene Lookup</h1>
+{% if run_name %}
+  <h3>Run selected: {{ run_name }}</h3>
+{% endif %}
+
+{{ select_run(select_list) }}
+
+{% if lookup_form %}
+  <div class="form">
+    <form action="" method="post" enctype="multipart/form-data">
+      {{ lookup_form.hidden_tag() }}
+      <div class="form-element">
+        <h4>Please upload your query sequences:</h4>
+        <p>Acceptable input: .fasta</p>
+        {{ lookup_form.upload() }}
+      </div>
+      <div class="form-element">
+        {{ lookup_form.datatype() }} Sequence type<br>
+      </div>
+      <div class="form-element">
+        {{ lookup_form.ident() }} Percent Identity<br>
+      </div>
+      <div class="form-element">
+        {{ lookup_form.plen() }} Percent Length<br>
+      </div>
+      <div class="form-element">
+        {{ lookup_form.submit(class_="btn btn-primary") }}
+      </div>
+    </form>
+  </div>
+{% endif %}
+
+{% if blast_results %}
+  <h3>Results:</h3>
+  {% if results_form %}
+    <div class="form">
+      <form action="" method="post" id="family-form">
+        {{ results_form.hidden_tag() }}
+        <h4>Download query gene alignment:</h4>
+        <div class="form-element">
+          {{ results_form.select(class_="form-control") }}
+        </div>
+        <div class="form-element">
+          {{ results_form.download(class_="btn btn-success") }}
+        </div>
+        <h4>Download list of genomes included per gene:</h4>
+        <div class="form-element">
+          {{ results_form.genomes_included(class_="btn btn-primary") }}
+        </div>
+        <h4>Download .xlsx table:</h4>
+        {{ results_form.download_table(class_="btn btn-warning") }}
+      </form>
+    </div>
+  {% endif %}
+
+  <table class="sortable table table-striped">
+    <thead>
+      <tr>
+        <th>Core Gene</th>
+        <th>Query</th>
+        <th>Target</th>
+        <th>% Identity</th>
+        <th>% Coverage</th>
+        <th>Align Length</th>
+        <th>Mismatches</th>
+        <th>Open Gaps</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for report in blast_results %}
+      <tr>
+      <td>{{ core_families[report[1]] }}</td>
+      {% for prop in report %}
+        <td>{{ prop }}</td>
+      {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% endblock %}

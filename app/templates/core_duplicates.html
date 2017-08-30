@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% from "macros.html" import select_run %}
+
+{% block title %}Core Duplicates{% endblock %}
+
+{% block head %}
+  <script type=text/javascript src="{{  url_for('static', filename='sorttable.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='core_duplicates.css')}}">
+{% endblock %}
+
+
+
+<!-- Content -->
+{% block content %}
+
+<h1>HardCORE - Core Gene Duplicates</h1>
+{% if run_name %}
+  <h3>Run selected: {{ run_name }}</h3>
+{% endif %}
+
+{{ select_run(select_list) }}
+
+{% if core_dup_form %}
+  <form action="" method="post">   
+    <div class="form"> 
+      <h4>Enter your parameters here:</h4>
+      <p>(as a decimal between 0.5 and 1)</p>
+      {{ core_dup_form.hidden_tag() }}
+      <p>{{ core_dup_form.ident }} Percent Identity</p>
+      <p>{{ core_dup_form.plen }} Percent Length</p>
+      {{ core_dup_form.submit(class_="btn btn-default")}}
+    </div>
+
+    {% if duplicates %}
+      <div class="details">
+        <h3>Showing results for: {{ run_date }}</h3>
+        <p><b># of core gene families</b>: {{ family_count }}</p>
+        <p><b># of rows</b>: {{ row_count }}</p>
+        <p><b>% identity</b>: {{ ident }}</p>
+        <p><b>% ident/length</b>: {{ plen }}</p>
+        {{ core_dup_form.download(class_="btn btn-primary") }}
+      </div>
+    {% endif %}
+  </form>
+{% endif %}
+
+{% if duplicates %}
+  <div>
+    <table class="table table-striped" id="core-dup-table">
+      <thead>
+        <tr>
+          <th>Core Gene Family</th>
+          <th>Genomes with duplicate core genes</th>
+          <th>Predicted Function</th>
+          <th>Core gene number</th>
+          {% for i in range(max_cols) %}
+            {% if loop.index == 1 %}
+              <th>Duplicate gene number(s)</th>
+            {% else %}
+              <th></th>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for i, family in duplicates.items()|sort %}
+        <div>
+        {% for genome, gene_list in family['core_gene'].items() %}
+          <tr>
+          {% if loop.index == 1 %}
+            <td>{{i}}</td>
+            <td>{{ genome }}</td>
+            <td>{{ family['predicted_function'] }}</td>
+          {% else %}
+            <td></td>
+            <td>{{ genome }}</td>
+            <td></td>
+          {% endif %}
+ 
+            <td>{{ gene_list[0] }}</td>
+          
+            {% for j in range(max_cols) %}
+              {% if j < gene_list|length-1 %}
+                <td>{{ gene_list[j+1][0] }} ({{ gene_list[j+1][1] }}%)</td>
+              {% else %}
+                <td></td>
+              {% endif %}
+            {% endfor %}
+          
+          </tr>
+        {%endfor%}
+        </div>
+      {%endfor%}
+      </tbody>
+    </table>
+  </div>
+
+{% endif %}
+
+{% endblock %}

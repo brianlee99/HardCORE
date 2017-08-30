@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="{{ url_for('static', filename='jquery-3.2.1.js')}}"></script>
+  <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+  <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+	{% block head %}{% endblock %}
+
+	<title>{% block title %}{% endblock %} - HardCORE Web Application</title>
+</head>
+
+<body>
+	<ul id="navbar">
+		<li><a href="/index">Home</a></li>
+		<li><a href="/about">About</a></li>
+		<li><a href="/summary_table">Summary Table</a></li>
+    <li><a href="/core_genome">Core Genome</a></li>
+    <li><a href="/core_subset">Core Subset</a></li>
+    <li><a href="/rarefaction">Rarefaction</a></li>
+    <li><a href="/rarefaction_results">RF Results</a></li>
+    <li><a href="/core_tree_builder">Tree Builder (Core)</a></li>
+    <li><a href="/tree_builder">Tree Builder (File)</a></li>
+    <li><a href="/gene_lookup">Gene Lookup</a></li>
+    <li><a href="/network">Network</a></li>
+    <li><a href="/sunburst">Sunburst</a></li>
+		<li><a href="/core_duplicates">Core Duplicates</a></li>
+    <li><a href="/migrate">Migrate</a></li>
+	</ul>
+	<div id="container">
+		{% with messages = get_flashed_messages() %}
+		  {% if messages %}
+	      {% for message in messages %}
+	        <div class="alert alert-warning alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            {{ message }}
+          </div>
+	      {% endfor %}
+		  {% endif %}
+		{% endwith %}
+
+		{% block content %}
+		{% endblock %}
+	</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "macros.html" import select_run %}
+
+{% block title %}Visualization{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+
+
+<!-- Content -->
+{% block content %}
+{% if visual_type == 'network' %}
+  <h1>HardCORE - Pan-Genome Network</h1>
+{% elif visual_type == 'sunburst' %}
+  <h1>HardCORE - Pan-Genome Sunburst</h1>
+{% endif %}
+
+
+
+{{ select_run(select_list) }}
+
+<h4>Preview:</h4>
+{% if visual_type == 'network' %}
+  <img src="{{  url_for('static', filename='network_preview.png') }}">
+{% elif visual_type == 'sunburst' %}
+  <img src="{{  url_for('static', filename='sunburst_preview.png') }}">
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,80 @@
+{% macro select_run(select_list) %}
+
+<div class="container-select">
+  <h4>Select a run:</h4>
+  <div class="select-element">
+    <select class="form-control" id="select">
+      {% for select in select_list %}
+        <option value="{{ select[0] }}">{{ select[1] }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="select-element">
+    <button onclick="gotoFolder()" class="btn btn-default">Update Run</button>
+  </div>
+</div>
+<script>
+  const gotoFolder = function() {
+    const val = document.getElementById("select").value;
+    const current = location.href;
+    const rest = current.substring(0, current.lastIndexOf("/")+1);
+    const last = current.substring(current.lastIndexOf("/") + 1, current.length);
+
+    const isFolderName = last.search(/\d{8}_\d{6}$/) === 0 ? true : false;
+    if (isFolderName) {
+      location.href = rest + val;
+    } else {
+      location.href = current + '/' + val;
+    }
+  }
+</script>
+
+{% endmacro %}
+
+
+
+{% macro search_table(tableId, indexes) %}
+
+<script>
+// takes the id of the table for searching, as well as a
+// list of td indexes that you are interested in searching against
+function searchTable() {
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("search");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("{{ tableId }}");
+  tr = table.getElementsByTagName("tr");
+
+  var positions = JSON.parse("{{ indexes }}");
+  for (i = 0; i < tr.length; i++) {
+
+    var tdArray = positions.map(function(pos) {
+      var elements = tr[i].getElementsByTagName("td")[pos];
+      return elements;
+    });
+
+    var isValidTr = true;
+    for (let j = 0; j < tdArray.length; j++) {
+      if (tdArray[j] === undefined) {
+        isValidTr = false;
+        break;
+      }
+    }
+
+    if (isValidTr) {
+      var found = false;
+      for (let j = 0; j < tdArray.length; j++) {
+        if (tdArray[j].innerHTML.toUpperCase().indexOf(filter) > -1) {
+          found = true;
+          break;
+        }
+      }
+      tr[i].style.display = found ? "" : "none";
+    }
+  }
+}
+
+
+</script>
+
+{% endmacro %}

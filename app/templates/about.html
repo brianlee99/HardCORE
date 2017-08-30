@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+
+<style>
+section {
+  margin-bottom: 12px;
+}
+</style>
+
+<script>
+$(document).ready(function(){
+    $("#one").click(function(){
+        $("#one_list").hide(500);
+    });
+});
+</script>
+
+<h1>About HardCORE</h1>
+
+<p><b>Check out the HardCORE source code <a href="https://github.com/brianlee99/HardCORE" target="_blank">here</a>.</b></p>
+
+<div style="width: 50%;">
+  <p>Thank you for using HardCORE! This web application was meant to be a user-friendly interface
+  for the Python/Perl HardCORE command-line applications created by Nick Petronella at BFSSI.
+
+  HardCORE allows you, as the researcher, to not only perform the main core-genome analysis itself provided
+  by the original scripts, but also provides several extra levels of insight, e.g. inspecting SNPs of the core genome,
+  visualizing patterns and trends in the pan genome (powered by the d3 library), and finding the genes that belong
+  to a subset of genomes.
+
+  <p>And best of all, is that you do not have to type a single statement in the bash terminal! </p>
+
+  <p>Features include:</p>
+  <section>
+    <button type="button" class="btn btn-info" id="one">Index (HardCORE)</button>
+    <ul id="one_list">
+    	<li>Run the HardCORE analysis by providing fully prokka-annotated, assembled prokaryotic genomes in ffn/faa format</li>
+      <li>HardCORE scripts will generate on the server-side result files that store information on the pan-genome and core-genome
+        <ul>
+          <li>Pan-Genome: every single gene family (where genes that belong to a gene family across different genomes are associated)</li>
+          <li>Core-Genome: the set of gene families that all genes have in common</li>
+        </ul>
+      </li>
+      <li>Must specify Percent Length and Percent Identity (as decimals, NOT percents!)</li>
+      <li>Can optionally specify the number of processes => if left blank, by default uses all your cores</li>
+    </ul>
+  </section>
+
+  <section>
+    <button type="button" class="btn btn-info">Summary Table</button>
+    <ul>
+      <li>Display a summary of all the runs that have been performed</li>
+      <li>Can perform a cleanup, where incomplete runs, unneccesary files, etc. are deleted</li>
+      <li><b>NOTE:</b> Everyone will be sharing the same set of runs on the server, so please label your own runs
+        and do not accidentally delete others' runs!</li>
+    </ul>
+  </section>
+
+  <section>
+    <button type="button" class="btn btn-info">Core Subset</button>
+    <ul>
+      <li>Select a subset of genomes; find genes that are ONLY in this subset
+        <ul>
+          <li>i.e. not found in any of the other genomes</li>
+        </ul>
+      </li>
+      <li>Output a zip of alignments, where each file is a core subset gene aligned with muscle
+        <ul>
+          <li>These alignments can be used to produce a tree with the general Tree Builder!</li>
+          <li>The gene id's (5 digit numbers) are stripped when producing the alignment files, but they can be retrieved from the .xlsx</li>
+        </ul>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <button type="button" class="btn btn-info">Core Genome</button>
+    <ul>
+      <li>Download core gene alignments so that you may view them with your favourite alignment viewer (e.g. SeaView)</li>
+      <li>Renders a table which summarizes each core gene (e.g. what percent of the core gene is identical across all genomes?,
+      how many SNPs are there vs. how many amino acids were actually affected?)</li>
+      <li>Click on a single core gene, or use one of the "View graphs" buttons to open a new tab for SNP Mutations (see below)</li>
+      <li>Change the reference genome (against which other sequences of the same core gene are compared)</li>
+      <li>By clicking on a core gene in the SNP Viewer page, you can further inspect the nature of 
+        its SNPs/amino acid changes
+        <ul>
+          <li>Display the number of <b>transition/transversion</b> mutations for a particular core gene</li>
+          <li>Also displays the number of <b>conservative/non-conservative</b> mutations for its amino acid sequence</li>
+        </ul>
+      </li>
+      <li>In addition, you can opt to view sortable bar graphs of SNPs created in d3 (thanks goes out to Mike Bostock
+        for his awesome work, check it out here: https://bl.ocks.org/mbostock/3885705)</li>
+    </ul>
+  </section>
+
+  <button type="button" class="btn btn-info">Core Duplicates</button>
+  <ul>
+    <li>Discover duplicated core genes that were removed from the initial HardCORE analysis</li>
+    <li>Able to set percent length and percent identity thresholds (as decimals) to define a "duplicated core gene"</li>
+    <li>Table of duplicated genes - provides 5-digit core gene number as well as duplicate gene numbers, for each
+      genome that has a duplicate of a particular core gene family</li>
+  </ul>
+
+  <button type="button" class="btn btn-info">Rarefaction</button>
+  <ul>
+    <li>Perform the rarefaction analysis, where you start with a small size of randomly selected genomes,
+    and gradually increase the size (by a constant amount) until you cover (almost) all genomes</li>
+    <li>The core genome size is calculated numerous times (usu. you will want between 5-10)</li>
+    <li>Generally, you should expect to see a curve that starts off at a high core genome size, then levels off
+      as you increase the number of genomes</li>
+  </ul>
+
+  <button type="button" class="btn btn-info">Tree Builder (Core/File)</button>
+  <ul>
+    <li>With the Core Tree Builder, you can construct a tree from selected core genes (as nucleotide or amino acid sequences)</li>
+    <li>Can construct a tree using either the raxml or fasttree builders</li>
+    <li>Specify the number of repetitions (N) => recommended N=1000 for publication-appropriate trees</li>
+    <li>With the generalized Tree Builder, construt a tree from a .zip of fastas or a single fasta
+      <ul>
+        <li>Note: The sequences must be pre-aligned!</li>
+        <li>Also, if you are submitting a zip then the headers must be the same across all files.</li>
+        <li>This means that prokka annotations/gene number labelling must be stripped</li>
+      </ul>
+    </li>
+    <li>For both tree builders, can view in Dendroscope, or visualize using Python's ETE3 toolkit</li>
+    <li>Can download the newick format for the generated tree, if you wish to view/manipulate the tree yourself</li>
+  </ul>
+
+  <button type="button" class="btn btn-info">Gene Lookup</button>
+  <ul>  
+    <li>By uploading a multi-fasta of query genes, searches the database of sequences for genes that are sufficiently similar to each query gene</li>
+    <li>Found genes are indicated as core gene (or not)</li>
+    <li>Download an alignment of the query+target genes (useful for creating a tree!)</li>
+    <li>Download a condensed list of genomes present/absent for each query gene as a tsv</li>
+  </ul>
+
+  <button type="button" class="btn btn-info">(Pan-Genome) Network</button>
+  <ul>
+    <li>Pan-Genome Network
+      <ul> 
+        <li>A fun way to visualize your data!</li>
+        <li>Generates a graph where each node represents a genome, and edges indicate whether two genomes are "similar enough"</li>
+        <li>Can dynamically set the threshold, which establishes links between genomes if they are together in at least X% of the pan-genome families</li> 
+        <li>Play around with the slider and see if you find any interesting patterns!</li>
+      </ul>
+    </li>
+  </ul>
+
+  <button type="button" class="btn btn-info">(Pan-Genome) Sunburst</button>
+  <ul>
+    <li>Pan-Genome Sunburst
+      <ul>
+        <li>Display a sunburst diagram, which divides up the pan-genome families based on how many genomes they consist of</li>
+        <li>Size of a slice is related to how many pan-gene families are present with a specific subset of genomes</li>
+        <li>Put your mouse over one of the outer circle slices to see which genomes are present/missing!</li>
+      </ul>
+    </li>
+  </ul>
+</section>
+
+<footer>
+  <p>The HardCORE web application was created in May-Aug 2017 by Brian Lee.</p>
+</footer>
+{% endblock %}

@@ -1,0 +1,31 @@
+/*#core-dup-table ,
+#core-dup-table td,
+#core-dup-table th{
+	border: 1px solid black;
+	text-align: center;
+}
+
+#core-dup-table thead {
+	background-color: gray;
+	color: white;
+}*/
+
+#core-dup-table th{
+    border: 1px solid black;
+}
+
+.form {
+    border: 1px solid black;
+    padding: 12px;
+    margin: 12px 0px 12px 0px;
+    width: 30%;
+    background-color: #caeef9;
+}
+
+.select-select {
+	margin-bottom: 8px;
+}
+
+.details {
+    margin-bottom: 8px;
+}

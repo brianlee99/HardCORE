@@ -1,0 +1,43 @@
+/*.field {
+	display: inline;
+	margin-left: 8px;
+}
+
+.header {
+	display: inline;
+	font-weight: bold;
+}
+
+.fields {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.form {
+	margin-top: 12px;
+}*/
+
+/*#select_container {
+	width: 20%;
+	margin: 10px 0px 10px 0px;
+}*/
+
+#rf-table {
+	width: 50%;
+	margin-top: 16px;
+}
+
+#rf-table thead {
+	background-color: gray;
+	color: white;
+}
+
+#rf-table, #rf-table th, #rf-table td {
+	border: 1px solid black;
+	text-align: center;
+}
+
+.object {
+	margin: 24px 0px 24px 0px;
+	border: 1px solid black;
+}

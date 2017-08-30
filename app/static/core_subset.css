@@ -1,0 +1,11 @@
+#strain_table thead th {
+  border: 1px solid black;
+}
+
+#results thead th {
+  border: 1px solid black;
+}
+
+#select-strains {
+    max-width: 600px;
+}

@@ -1,0 +1,35 @@
+.field {
+	display: inline;
+	margin-left: 8px;
+}
+
+.header {
+	display: inline;
+	font-weight: bold;
+}
+
+.fields {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.form {
+    border: 1px solid black;
+    padding: 12px;
+    margin: 12px 0px 12px 0px;
+    width: 30%;
+    background-color: #caeef9;
+}
+
+#select_container {
+	width: 20%;
+	margin: 10px 0px 10px 0px;
+}
+
+.form-element {
+	margin-bottom: 8px;
+}
+
+.code {
+	text-align: left;
+}

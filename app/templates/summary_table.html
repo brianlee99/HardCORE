@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "macros.html" import search_table %}
+
+{% block title %}Summary Table{% endblock %}
+
+{% block head %}
+  <script type=text/javascript src="{{  url_for('static', filename='sorttable.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static',filename='summary_table.css') }}">
+{% endblock %}
+
+{% block content %}
+<h1>HardCORE - Summary Table</h1>
+
+<form action="" method="post">
+  {{ form.hidden_tag() }}
+  <h4>Select files to download:</h4>
+  <div class="fields">
+    <label class="checkbox-inline">{{ form.singles }} Singletons</label>
+    <label class="checkbox-inline">{{ form.pan_genome }} Pan-Genome</label>
+    <label class="checkbox-inline">{{ form.core_genome }} Core-Genome</label>
+  </div>
+
+  <div>
+    <!-- buttons for downloading excel + deleting entries -->
+    <div class="buttons">    
+      {{ form.download(class_="btn btn-primary") }}
+      {{ form.export(class_="btn btn-success") }}
+    	{{ form.delete(class_="btn btn-danger") }}
+    </div>
+    <!-- search bar -->
+    <input type="text" id="search" onkeyup="searchTable()" placeholder="Search by run name..."
+      title="Type in any search query" class="form-control">
+    <!-- results table -->
+    <table class="sortable table table-striped" id="runs">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Date</th>
+          <th>Run Name</th>
+          <th>Time Elapsed (min)</th>
+          <th>% Identity</th>
+          <th>% Length</th>
+          <th>Genomes</th>
+          <th>Genes/genome</th>
+          <th>Core Genes</th>
+          <th>Pan Genes</th>
+          <th>Singleton Genes</th>
+          <th>Core AA Mutations</th>
+          <th>Core SNPs</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for run in runs.keys()|sort %}
+        <tr>
+          <th><input type=checkbox name=check value={{run}}></th>
+          <td>{{runs[run]["date"]}}</td>
+          <td>{{runs[run]["run_name"]}}</td>
+          <td>{{runs[run]["time_elapsed"]}}</td>
+          <td>{{runs[run]["ident"]}}</td>
+          <td>{{runs[run]["plen"]}}</td>
+          <td>{{runs[run]["genome_count"]}}</td>
+          <td>{{runs[run]["genes_per_genome"]}}</td>
+          <td>{{runs[run]["core_count"]}}</td>
+          <td>{{runs[run]["pan_count"]}}</td>
+          <td>{{runs[run]["singleton_count"]}}</td>
+          <td>{{runs[run]["mutation_count"]}}</td>
+          <td>{{runs[run]["snp_count"]}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="button">
+    {{ form.cleanup(class_="btn btn-warning") }}
+  </div>
+</form>
+
+<!-- <script>
+function searchTable() {
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("search");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("runs");
+  tr = table.getElementsByTagName("tr");
+
+  for (i = 0; i < tr.length; i++) {
+    td0 = tr[i].getElementsByTagName("td")[1];
+    console.log(td0);
+    // not all tr have td
+    if (td0) {
+      if (td0.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }       
+  }
+}
+</script> -->
+{{ search_table("runs", "[1]") }}
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "macros.html" import select_run %}
+
+{% block title %}Rarefaction Results{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static',filename='rarefaction_results.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h1>HardCORE - Rarefaction Results</h1>
+{% if run_name %}
+	<h3>Run selected: {{ run_name }}</h3>
+{% endif %}
+
+{{ select_run(select_list) }}
+
+{% if rf_data %}
+	<div class="results">
+		<img src="{{ url_for('download', filename=filename) }}" class="object">
+
+		{% if download_form %}
+			<form action="" method="post">
+				{{ download_form.hidden_tag() }}
+				{{ download_form.download(class_="btn btn-primary") }}
+			</form>
+		{% endif %}
+
+		<h4>Mean/Standard Deviations:</h4>
+		<table class="table table-striped" id="rf-table">
+			<thead>
+				<tr>
+					<th>Size</th>
+					<th>Mean</th>
+					<th>St. Dev</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for size in rf_data.keys()|sort %}
+				<tr>
+					<td>{{ size }}</td>
+					<td>{{ rf_data[size]['mean'] }}</td>
+					<td>{{ rf_data[size]['stdev'] }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endif %}
+
+{% endblock %}

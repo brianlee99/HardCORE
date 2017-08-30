@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Summary Table{% endblock %}
+
+{% block head %}
+<script type=text/javascript src="{{  url_for('static', filename='sorttable.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static',filename='summary_table.css') }}">
+{% endblock %}
+
+
+
+{% block content %}
+<h1>HardCORE - Migrate</h1>
+
+
+
+
+<form action="" method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <h4>
+    Export runs:  
+    <span>{{ form.export_runs(class_="btn btn-primary") }}</span>
+  </h4>
+  <div id="import-run">
+    <h4>Import runs:</h4>
+    {{ form.upload }}
+    {{ form.import_runs(class_="btn btn-warning") }}
+  </div>
+
+    <input type="text" id="search" onkeyup="searchTable()" placeholder="Search by run name..."
+      title="Type in any search query" class="form-control">
+    <table class="sortable table table-striped" id="runs">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Date</th>
+          <th>Run Name</th>
+          <th>Time Elapsed (min)</th>
+          <th>% Identity</th>
+          <th>% Length</th>
+          <th>Genomes</th>
+          <th>Genes/genome</th>
+          <th>Core Genes</th>
+          <th>Pan Genes</th>
+          <th>Singleton Genes</th>
+          <th>Core AA Mutations</th>
+          <th>Core SNPs</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for run in runs.keys()|sort %}
+        <tr>
+          <th><input type=checkbox name=check value={{run}}></th>
+          <td>{{runs[run]["date"]}}</td>
+          <td>{{runs[run]["run_name"]}}</td>
+          <td>{{runs[run]["time_elapsed"]}}</td>
+          <td>{{runs[run]["ident"]}}</td>
+          <td>{{runs[run]["plen"]}}</td>
+          <td>{{runs[run]["genome_count"]}}</td>
+          <td>{{runs[run]["genes_per_genome"]}}</td>
+          <td>{{runs[run]["core_count"]}}</td>
+          <td>{{runs[run]["pan_count"]}}</td>
+          <td>{{runs[run]["singleton_count"]}}</td>
+          <td>{{runs[run]["mutation_count"]}}</td>
+          <td>{{runs[run]["snp_count"]}}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+</form>
+
+<script>
+function searchTable() {
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("search");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("runs");
+  tr = table.getElementsByTagName("tr");
+
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[1];
+    if (td) {
+      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+</script>
+
+
+{% endblock %}

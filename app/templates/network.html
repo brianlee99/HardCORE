@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+}
+
+* {
+  font-family: sans-serif;
+}
+
+#network {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+#network-svg {
+  border: 1px solid black;
+}
+
+.setting {
+  display: inline-block;
+  padding: 8px;
+}
+
+#settings {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+#form {
+  border: 1px solid black;
+}
+
+.button {
+  margin: 8px;
+}
+
+
+</style>
+
+<div id="settings">
+  <div id="form" class="setting">
+    <form action="" method="post" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+      <h5>Download the list of genomes here:</h5>
+      <div>{{ form.download }}</div>
+      <h5>Upload your categorized genome file here:</h5>
+      <div class="button">{{ form.upload }}</div>
+      <div class="button">{{ form.submit }}</div>
+      <div class="button">{{ form.restore_default }}</div>
+    </form>
+  </div>
+
+  <div id="network-options" class="setting">
+    <input type="range" id="range" value="75" step="1">
+    <p><b>% gene families shared: </b><span id="range-text"></span></p>
+    <p style="margin-left: 24px;">= # gene families in common / max # of gene families for a single genome
+    <p>Currently displaying relationships with at least <b><span id="threshold"></span></b> genes in common</p>
+    <button id="refresh">Click to refresh</button>
+  </div>
+</div>
+
+<div id="network">
+  <svg width="1200" height="800" id="network-svg"></svg>
+</div>
+<script src="{{ url_for('static', filename='jquery-3.2.1.js') }}"></script>
+<script src="{{ url_for('static', filename='d3.v4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='createOut.js') }}"></script>
+
+<script>
+$(function() {
+  var update = function() {
+
+    // convert range's 0-100% to a decimal (0 to 1)
+    var cutoff = document.getElementById("range").value / 100;
+
+    // select all the links and nodes and remove them
+    d3.selectAll("svg > *").remove();
+
+    var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+    // set simulation forces
+    var simulation = d3.forceSimulation()
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(40))
+        .force("x", d3.forceX(width / 2))
+        .force("y", d3.forceY(height / 2))
+        .on("tick", ticked);
+
+    var link = svg.selectAll(".link"),
+        node = svg.selectAll(".node");
+
+    var baseLocation = "{{ url_for('static', filename='') }}";
+    var filename = "visuals/{{folder_name}}.json";
+    // nocache=123 for preventing cache
+    var labelsFilename = "visuals/{{folder_name}}_labels.json?nocache=" + (new Date()).getTime();
+    var jsonLocation = baseLocation + filename;
+    var jsonLabelsLocation = baseLocation + labelsFilename;
+
+    var basePromise = $.getJSON(jsonLocation);
+    var labelsPromise = $.getJSON(jsonLabelsLocation);
+
+
+
+
+    // case 1) if the labels json file is there
+    $.when(labelsPromise).then((labels) => {
+      parsePanGenomeJSON(labels);
+    // case 2) if the labels json file is absent
+    }).fail(function(d, textStatus, error) {
+      parsePanGenomeJSON(null);
+    });
+
+    // read json
+    function parsePanGenomeJSON(labels) {
+
+      $.getJSON(jsonLocation, function(data_pre) {
+
+        var size = data_pre.max_count;
+        //var size = data_pre.size;
+        var threshold = Math.round(size * cutoff);
+        document.getElementById('threshold').textContent = threshold;
+
+        // minimum depends on cutoff value
+        var minCount = Math.round(size * cutoff, 0);
+        var maxCount = data_pre.max_count;
+        var midpoint = Math.floor((minCount+maxCount) / 2);
+
+        // the actual Object used for rendering the nodes/links
+        var graph = createOut(data_pre, cutoff);
+
+
+        if (labels) {
+          function findIndexUsingGenomeName(genome) {
+            for (let i = 0; i < graph.nodes.length; i++)
+              if (graph.nodes[i].id === genome) return i;
+            return -1; // not found
+          }
+
+          for (let genome in labels) {
+            var i = findIndexUsingGenomeName(genome);
+            if (i !== -1)
+              graph.nodes[i].group = labels[genome];
+          }
+        }
+
+        simulation.nodes(graph.nodes);
+        simulation.force("link").links(graph.links);
+
+        // set thickness of bands based on how "related" two genomes are
+        var graphLinks = graph.links;
+        for (let i = 0; i < graphLinks.length; i++) {
+          var srcName = graphLinks[i].source.id;
+          var targetName = graphLinks[i].target.id;
+          var pairName = srcName + " " + targetName;
+          // if exceeding the 'midpoint', make the line thicker
+          graphLinks[i]['value'] = data_pre.pairs[pairName] >= midpoint ? 3 : 1;
+        }
+
+        link = link
+          .data(graph.links)
+          .enter().append("line")
+            .attr("class", "link")
+
+        link.attr("stroke-width", (d) => Math.sqrt(d.value) );
+
+        node = node
+          .data(graph.nodes)
+          .enter().append("circle")
+            .attr("class", "node")
+            .attr("r", 6)
+            .attr("fill", function(d) { return color(d.group); })
+            .call(d3.drag()
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end", dragended));
+
+        node.append("title")
+            .text(function(d) { return d.id; });
+      });
+    }
+
+    // set upper and lower bounds on x and y coordinates
+    // for both the links and nodes
+    function ticked() {
+      link.attr("x1", function(d) { 
+        if (d.source.x > width) return width;
+        else if (d.source.x < 0) return 0;
+        else return d.source.x; 
+      }).attr("y1", function(d) {
+        if (d.source.y > height) return height;
+        else if (d.source.y < 0) return 0;
+        else return d.source.y; 
+      }).attr("x2", function(d) { 
+        if (d.target.x > width) return width;
+        else if (d.target.x < 0) return 0;
+        else return d.target.x; 
+      }).attr("y2", function(d) {
+        if (d.target.y > height) return height;
+        else if (d.target.y < 0) return 0;
+        else return d.target.y; 
+      });
+
+      node.attr("cx", function(d) { 
+        if (d.x > width) return width;
+        else if (d.x < 0) return 0;
+        else return d.x; 
+      }).attr("cy", function(d) { 
+        if (d.y > height) return height;
+        else if (d.y < 0) return 0;
+        else return d.y; 
+      });
+    }
+
+    function dragstarted(d) {
+      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+      if (!d3.event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+
+  }
+
+  function updateRangeText() {
+    var range = document.getElementById("range");
+    document.getElementById('range-text').textContent = range.value + "%";
+  }
+
+  var button = document.getElementById("refresh");
+  button.addEventListener("click", update);
+  var range = document.getElementById("range");
+  range.addEventListener("input", updateRangeText);
+
+  // start with default range value
+  updateRangeText();
+  update();
+
+
+
+});
+</script>

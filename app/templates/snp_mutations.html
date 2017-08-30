@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}SNP Mutations{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='snp_mutations.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h1>HardCORE - SNP Mutations for <b>{{ gene_name }}</b></h1>
+<h3>Using reference: <i>{{ ref_genome }}</i></h3>
+
+<div class="buttons">
+	<form action="" method="post">
+		{{ form.hidden_tag() }}
+	  {{ form.download(class_="btn btn-primary") }}
+	  <button type="button" onclick="openHistogram('aa')" class="btn btn-default">View Amino Acid</button>
+	  <button type="button" onclick="openHistogram('nt')" class="btn btn-default">View Nucleotide</button>
+	</form>
+</div>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Plot label</th>
+				<th>Genome</th>
+				<th>Transitions</th>
+				<th>Transversions</th>
+				<th>Conservative</th>
+				<th>Non-conservative</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for genome in alts %}
+			<tr>
+				<th>{{ loop.index }} </th>
+				<td>{{ genome }}</td>
+				<td>{{ nt_mutations[genome]['transitions'] }}</td>
+				<td>{{ nt_mutations[genome]['transversions'] }}</td>
+				<td>{{ aa_mutations[genome]['conservative'] }}</td>
+				<td>{{ aa_mutations[genome]['non_conservative'] }}</td>
+			</tr>
+		{%endfor %}
+		</tbody>
+	</table>
+
+<script>
+function openHistogram(datatype) {
+	let currentURL = window.location.href;
+	let urlArray = currentURL.split("/");
+	let folderName = urlArray[4];
+	let gene = urlArray[5];
+
+	if (datatype == 'aa') {
+		window.open('/snp_graph/' + folderName + '/' + gene +
+			'/amino_acid', '_blank');
+	} else if (datatype == 'nt') {
+		window.open('/snp_graph/' + folderName + '/' + gene +
+			'/nucleotide', '_blank');
+	}
+}
+</script>
+{% endblock %}
+

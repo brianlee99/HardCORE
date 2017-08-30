@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% from "macros.html" import select_run %}
+{% block title %}Tree Builder{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static',filename='tree_builder.css') }}">
+{% endblock %}
+
+{% block content %}
+
+{% if rule == 'core_tree_builder' %}
+  <h1>HardCORE - Core Tree Builder</h1>
+  {% if run_name %}
+    <h3>Run selected: {{ run_name }}</h3>
+  {% endif %}
+  {{ select_run(select_list) }}
+{% else %}
+  <h1>HardCORE - File Tree Builder</h1>
+{% endif %}
+
+
+{% if tree_form %}
+  <div class="left form">
+    <form method="post" enctype="multipart/form-data">
+      <div class="form-section">
+        {{ tree_form.hidden_tag() }}
+        <h4>Specify parameters for building a tree:</h4>
+
+        <div class="buttons">
+          {{ tree_form.builder(class_="form-control") }}
+        </div>
+
+        <div class="form-element">
+          {{ tree_form.datatype(class_="form-control") }}
+        </div>
+
+        <div class="form-element">
+          {{ tree_form.merge }} <b>Collapse identical genes</b>
+        </div>
+
+        {% if rule == 'tree_builder' %}
+          <p>
+            Upload your sequences <br>
+            <b>Acceptable inputs:</b> .fasta, zip of .fasta
+          </p>
+          <div class="form-element">
+            {{ tree_form.upload }}
+          </div>
+        {% endif %}
+
+        <hr class="divider"/>
+
+        <h3>RAxML only!</h3>
+        <div class="form-element">
+          <p><b>Algorithm</b> (default: PROTGAMMALG for aa, GTRGAMMA for nt)</p>
+          {{ tree_form.algorithm(class_="form-control") }} 
+          
+          <div class="inner">
+            <p class="center">Available Algorithms</p>
+            <p><b>Amino Acid:</b></p>
+            <ul>
+              <li>PROTGAMMALG (default)</li>
+              <li>PROTGAMMABLOSUM62</li>
+              <li>PROTCATLG</li>
+              <li>PROTCATBLOSUM62</li>
+            </ul>
+            <p><b>Nucleotide:</b></p>
+            <ul>
+              <li>GTRGAMMA (default)</li>
+              <li>GTRCAT</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="form-element">
+          <p><b># of bootstraps</b> (default: 10; recommended 1000 for publications)</p>
+          {{ tree_form.num_runs(class_="form-control") }} 
+        </div>
+
+        <div class="form-element">
+          {{ tree_form.multithread }} Multithreading (optional, but faster)
+        </div>
+
+        <hr class="divider"/>
+
+        {{ tree_form.submit(class_="btn btn-primary") }}
+      </div>
+      
+      {% if tree_props %}
+        <div class=" form-section">
+
+          <h3 class="center">Tree Builder Results</h4>
+          <div class="buttons">
+            {{ tree_form.dendroscope(class_="btn btn-success") }}
+            {{ tree_form.download(class_="btn btn-info") }}
+          </div>
+
+          <h4 class="center">ETE Visualization</h4>
+          <div class="form-element">
+            {{ tree_form.show_align }} Show SNP Alignment
+          </div>
+          <div class="form-element">
+            {{ tree_form.show_bootstrap }} Show Bootstrap values
+          </div>
+          <div class="form-element">
+            {{ tree_form.ete(class_="btn btn-danger") }}
+            {{ tree_form.pdf(class_="btn btn-primary") }}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Searching/selecting core genes -->
+      {% if rule == 'core_tree_builder' %}
+        <h4>Search for core genes:</h4>
+        <div>
+          <div class="buttons">
+            <button type="button" onclick="selectShown()" class="btn btn-success">Select Shown</button>
+            <button type="button" onclick="deselectAll()" class="btn btn-info">Deselect All</button>
+          </div>
+            <input type="text" id="search" onkeyup="searchTable()" placeholder="Search predicted functions"
+              title="Type in a gene function" class="form-control">
+        </div>
+
+        <!-- Table of Core Genes -->
+        <table class="table table-striped sortable" id="tree_table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Gene name</th>
+              <th>Predicted function</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in range(table|count) %}
+            <tr>
+              <th><input name="check" type="checkbox" value={{i}}></th>
+              <td>
+                  {{ table[i|string]['name'] }}
+              </td>
+              <td>{{ table[i|string]['predicted_function'] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+    </form>
+  </div>
+{% endif %}
+
+{% if tree_props %}
+  <div class="right">
+    <div class="form-section">
+      <h3 class="center">Tree Properties (most recently created)</h3>
+
+      <p><b>Tree Builder:</b> {{ tree_props['builder'] }}</p>
+
+      {% if tree_props['datatype'] == 'nt': %}
+        <p><b>Tree Type:</b> Nucleotide</p>
+      {% else %}
+        <p><b>Tree Type:</b> Amino Acid</p>
+      {% endif %}
+
+      {% if tree_props['merge'] %}
+        <p><b>Collapsing:</b> Yes</p>
+      {% else %}
+        <p><b>Collapsing:</b> No</p>
+      {% endif %}
+
+      <!-- Gene List / File List -->
+      <p>
+        {% if rule == 'core_tree_builder' %}
+          <b>Gene List:</b> 
+        {% else %}
+          <b>File List:</b> 
+        {% endif %}
+        <ul>
+          {% for gene in tree_props['gene_list'] %}
+            <li>{{ gene }}</li>
+          {% endfor %}
+        </ul>
+      </p>
+
+      <!-- only for raxml -->
+      {% if tree_props['builder'] == 'raxml' %}
+      <p><b>Algorithm:</b> {{ tree_props['algorithm'] }}</p>
+      <p><b>Bootstraps:</b> {{ tree_props['N'] }}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+
+<!-- JavaScript -->
+{% if rule == 'core_tree_builder' %}
+  <script>
+  let allChecked = false;
+  function searchTable() {
+    var input, filter, table, tr, td, i;
+    input = document.getElementById("search");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("tree_table");
+    tr = table.getElementsByTagName("tr");
+
+    for (i = 0; i < tr.length; i++) {
+      td0 = tr[i].getElementsByTagName("td")[0];
+      td1 = tr[i].getElementsByTagName("td")[1];
+      if (td0 && td1) {
+        if (td0.innerHTML.toUpperCase().indexOf(filter) > -1 ||
+            td1.innerHTML.toUpperCase().indexOf(filter) > -1 ) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }       
+    }
+  }
+
+  function selectShown() {
+    let check = document.getElementsByName("check");
+    let strainTable = document.getElementById("tree_table");
+    let rows = strainTable.rows;
+    // exclude the head <tr>
+    rows = Array.prototype.slice.call(rows);
+    rows = rows.slice(1);
+
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].style.display == "") {
+        //console.log(check[i]);
+        check[i].checked = true;
+      }
+    }
+  }
+
+  function deselectAll() {
+    let check = document.getElementsByName("check");
+    check.forEach((checkbox) => {
+      checkbox.checked = false;
+    })
+  }
+
+  </script>
+{% endif %}
+
+
+
+
+
+{% endblock %}

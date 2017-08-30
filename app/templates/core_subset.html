@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% from "macros.html" import select_run, search_table  %}
+
+{% block title %}Core Subset{% endblock %}
+
+{% block head %}
+  <script type=text/javascript src="{{  url_for('static', filename='sorttable.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static',filename='core_subset.css') }}">
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<h1>HardCORE - Core Subset Analysis</h1>
+{% if run_name %}
+  <h3>Run selected: {{ run_name }}</h3>
+{% endif %}
+
+{{ select_run(select_list) }}
+
+<div id="select-strains">
+  {% if form %}
+    <form action="" method="post">
+      {{ form.hidden_tag() }} 
+      <h3>Select strains for core subset analysis:</h3>
+      <input type="text" id="search" onkeyup="searchTable()" placeholder="Search for strains"
+        title="Type in a strain name" class="form-control">
+      <table class="sortable table" id="strain_table">
+        <thead class="thead-default">
+          <tr>
+            <th></th>
+            <th>Strain name</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for strain in strains %}
+          <tr>
+            <td><input type=checkbox name=check value={{strain}}></td>
+            <td>{{ strain }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {{ form.submit (class_="btn btn-primary") }}
+      <button type="button" onclick="selectShown()" class="btn btn-success">Select Shown</button>
+      <button type="button" onclick="deselectAll()" class="btn btn-info">Deselect All</button>
+    </form>
+  {% endif %}
+</div>
+
+<div>
+{% if download_form %}
+  <h3 class="underlined">Core subset analysis results</h3>
+  <h4>Gene count: {{count}}</h4>
+  <form action="" method="post">
+    {{ download_form.hidden_tag() }}
+    {{ download_form.alignments(class_="btn btn-success") }}
+    {{ download_form.download(class_="btn btn-primary") }}
+  </form>
+  <h4 class="underlined">Table of Prokka Numbers</h4>
+  <table class="sortable table table-striped" id="results">
+    <thead>
+      <tr>
+        {% if predicted_functions|count > 0 %}
+          <th>Predicted function</th>
+        {% endif %}
+        {% for header in subset_genes.keys() %}
+          <th>{{ header }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+    {% for i in range(predicted_functions|count) %}
+      <tr>
+        <td>{{ predicted_functions[i] }}</td>
+        {% for header in subset_genes.keys() %}
+          <td>{{ subset_genes[header][i] }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+</div>
+
+{{ search_table("strain_table", "[0]")}}
+
+<script>
+function selectShown() {
+  let check = document.getElementsByName("check");
+  let strainTable = document.getElementById("strain_table");
+  let rows = strainTable.rows;
+  // exclude the head <tr>
+  rows = Array.prototype.slice.call(rows);
+  rows = rows.slice(1);
+
+  for (let i = 0; i < rows.length; i++) {
+    if (rows[i].style.display == "") {
+      check[i].checked = true;
+    }
+  }
+}
+
+function deselectAll() {
+  let check = document.getElementsByName("check");
+  check.forEach((checkbox) => {
+    checkbox.checked = false;
+  })
+}
+
+</script>
+{% endblock %}

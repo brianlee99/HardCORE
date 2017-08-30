@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% from "macros.html" import select_run, search_table %}
+
+{% block title %}Core Genome{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static',filename='core_genome.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<h1>HardCORE - Core Genome</h1>
+{% if run_name %}
+  <h3>Run selected: {{ run_name }}</h3>
+{% endif %}
+
+{{ select_run(select_list) }}
+
+{% if snp_form %}
+	<form action="" method="post">
+		<div class="section">
+			<p>Select a reference genome:</p>
+			<p>Current reference: <b id="curr_ref">{{ curr_ref }}</b></p>
+			<p>{{ snp_form.select_reference(class_="form-control") }}</p>
+			<p>{{ snp_form.update_reference(class="btn btn-primary") }}</p>
+		</div>
+
+		<div class="buttons">
+			<h4>Download options:</h4>
+			{{ snp_form.download_xlsx(class_="btn btn-basic") }}
+			{{ snp_form.download_selected(class_="btn btn-info") }}
+			{{ snp_form.download_all(class_="btn btn-warning") }}
+		</div>
+
+		<div class="buttons">
+			<h4>View SNP table/graphs:</h4>
+			<button class="btn btn-primary" onclick="openGenesAsTabs()" type="button">
+				View Selected Core Genes
+			</button>
+			<button class="btn btn-success" onclick="openAllGenes()" type="button">
+				View Whole Core Genome
+			</button>
+		</div>
+
+		<input type="text" id="search" onkeyup="searchTable()"
+			placeholder="Search gene name/predicted functions"
+			class="form-control">
+		
+		<form action="" method="post">
+			<table class="table table-striped" id="snp_table">
+				<thead>
+					<tr>
+						<th></th>
+						<th>Gene name</th>
+						<th>Predicted function</th>
+						<th>SNPs</th>
+						<th>Gene length (bp)</th>
+						<th>% Identity (nt)</th>
+						<th>A.A. mutations</th>
+						<th>Protein length (aa)</th>
+						<th>% Identity (aa)</th>
+						<th>FFN Alignment</th>
+						<th>FAA Alignment</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for i in range(table|count) %}
+					<tr>
+						<th><input name="check" type="checkbox" value={{i}}></th>
+						<td>
+							<a href="{{ url_for('snp_mutations', folder_name=folder_name, gene_name=table[i|string]['name']) }}"
+							target="_blank" class="gene">
+								{{ table[i|string]['name'] }}
+							</a>
+						</td>
+	 					<td>{{ table[i|string]['predicted_function'] }}</td>
+						<td>{{ table[i|string]['snp_count'] }}</td>
+						<td>{{ table[i|string]['length_nt'] }}</td>
+						<td>{{ table[i|string]['nt_sim'] }}</td>
+						<td>{{ table[i|string]['mutations'] }}</td>
+						<td>{{ table[i|string]['length_aa'] }}</td>
+						<td>{{ table[i|string]['aa_sim'] }}</td>
+						<td><input name="aln_ffn" value={{i|string + "_ffn"}} type="submit"></td>
+						<td><input name="aln_faa" value={{i|string + "_faa"}} type="submit"></td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</form>
+{% endif %}
+
+{{ search_table("snp_table", "[0, 1]") }}
+
+<!-- <script>
+function searchTable() {
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("search");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("snp_table");
+  tr = table.getElementsByTagName("tr");
+
+  for (i = 0; i < tr.length; i++) {
+    td0 = tr[i].getElementsByTagName("td")[0];
+    td1 = tr[i].getElementsByTagName("td")[1];
+    if (td0 && td1) {
+      if (td0.innerHTML.toUpperCase().indexOf(filter) > -1 ||
+          td1.innerHTML.toUpperCase().indexOf(filter) > -1 ) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }       
+  }
+}
+</script>
+ -->
+
+<script>
+// This script will launch a bunch of new tabs based on the user's selected genes
+function openGenesAsTabs() {
+	let checkedBoxes = getCheckedBoxes('check')
+	let genes = document.getElementsByClassName('gene')
+	if (checkedBoxes) {  // not null
+		for (let i = 0; i < checkedBoxes.length; i++) {
+			let j = checkedBoxes[i].value
+			let geneName = genes[j].textContent
+			openGene(geneName) 
+		}
+	}
+}
+
+function getCheckedBoxes(checkName) {
+	let checkboxes = document.getElementsByName(checkName)
+	let checkboxesChecked = []
+	for (let i = 0; i < checkboxes.length; i++) {
+		if (checkboxes[i].checked) {
+			checkboxesChecked.push(checkboxes[i])
+		}
+	}
+	return checkboxesChecked.length > 0 ? checkboxesChecked : null
+}
+
+function openGene(geneName) {
+	let folderName = "{{ folder_name }}"
+	window.open('/snp_mutations/' + folderName + '/' + geneName, '_blank')
+}
+
+function openAllGenes() {
+	let folderName = "{{ folder_name }}"
+	window.open('/snp_mutations/' + folderName + '/all', '_blank')
+}
+</script>
+
+{% endblock %}    

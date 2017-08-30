@@ -1,0 +1,15 @@
+#runs thead th {
+  border: 1px solid black;
+}
+
+#import-run {
+    border: 1px solid black;
+    display: inline-block;
+    margin: 12px 0px 12px 0px;
+    padding: 12px;
+    background-color: #caeef9;
+}
+
+input[type="file"] {
+    margin-bottom: 12px;
+}
