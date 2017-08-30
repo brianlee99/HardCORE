@@ -28,6 +28,10 @@ If you are planning on deployment onto the server, however, there are a number o
 * snp-sites (`$ sudo apt-get install snp-sites`)
 
 ### Special notes on installation
+
+#### The output/ and tree/ folders
+Delete the `hello.txt` files. They are just placeholders since git doesn't allow pushing of empty directories.
+
 #### Usearch
 After downloading the 32-bit executable (Linux version), rename it to just "usearch" and move it into /usr/bin using the following command:
 ```bash
