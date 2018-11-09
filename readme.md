@@ -1,4 +1,4 @@
-# readme.md
+# README.md
 
 HardCORE is a combination of a set of Python and Perl scripts (the original HardCORE suite, written by Nicholas Petronella), and a full-stack web application that I (Brian Lee) have developed. It is designed mostly towards Canadian researchers in the federal government in response to emerging need to quickly and accurately compute the core and pan genome. This application is useful for comparing two groups (such as genera or species).
 
