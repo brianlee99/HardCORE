@@ -1,6 +1,6 @@
 # readme.md
 
-HardCORE is a combination of a set of Python and Perl scripts (the original HardCORE suite, written by Nicholas Petronella), and a full-stack web application that I (Brian Lee) have developed. It is designed mostly towards Canadian researchers in the federal government in response to emerging need to quickly and accurately compute the core and pan genome. This application will be useful for comparing two groups (such as genera or species), or determining the
+HardCORE is a combination of a set of Python and Perl scripts (the original HardCORE suite, written by Nicholas Petronella), and a full-stack web application that I (Brian Lee) have developed. It is designed mostly towards Canadian researchers in the federal government in response to emerging need to quickly and accurately compute the core and pan genome. This application is useful for comparing two groups (such as genera or species).
 
 Features include:
 * Find the core genome of a set of strains that you are interested in, and view its constituent core genes
@@ -16,8 +16,8 @@ Features include:
 
 ## Installation
 
-There is no need to install anything if you are planning to use HardCORE on the BFSSI Bioinformatics Lab server. However, you will need Prokka-annotated genomes to perform the initial run. Please refer to the *Usage (for scientists)* section for instructions on how to get Prokka installed on your machine.
-If you are planning on deployment onto the server, however, there are a number of bioinformatics tools and libraries that must be installed on your machine first.
+No application is required if using HardCORE on the BFSSI Bioinformatics Lab server. However, Prokka-annotated genomes are needed to perform the initial run. Please refer to the *Usage (for scientists)* section for instructions on how to get Prokka installed on personal machine.
+If you are deploying onto the server, there are required bioinformatics tools and libraries that must be installed first.
 
 * [Muscle](http://www.drive5.com/muscle/downloads.htm)
 * [Usearch](http://www.drive5.com/usearch/download.html)
